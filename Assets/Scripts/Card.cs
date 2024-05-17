@@ -8,7 +8,7 @@ public class Card : MonoBehaviour
 
     private int spriteID;
     private int id;
-    private bool flipped;
+    public bool flipped = false; // Flag to track if the card is currently flipped
     private bool turning;
     [SerializeField]
     private Image img;

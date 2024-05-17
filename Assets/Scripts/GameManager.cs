@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.IO; // For file operations
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -64,8 +66,13 @@ public class GameManager : MonoBehaviour
         gamePanel.SetActive(false);
         menuPanel.SetActive(true);
         info.SetActive(false);
+        // Preload card images
+        PreloadCardImage();
 
+        LoadGame(); // Try to load saved game on start
     }
+
+
     // Purpose is to allow preloading of panel, so that it does not lag when it loads
     // Call this in the start method to preload all sprites at start of the script
     private void PreloadCardImage()
@@ -182,7 +189,7 @@ public class GameManager : MonoBehaviour
         for (i = 0; i < cards.Length/2; i++)
         {
             // get a random sprite
-            int value = Random.Range(0, sprites.Length - 1);
+            int value = UnityEngine.Random.Range(0, sprites.Length - 1);
             // check previous number has not been selection
             // if the number of cards is larger than number of sprites, it will reuse some sprites
             for (j = i; j > 0; j--)
@@ -204,7 +211,7 @@ public class GameManager : MonoBehaviour
         for (i = 0; i < cards.Length / 2; i++)
             for (j = 0; j < 2; j++)
             {
-                int value = Random.Range(0, cards.Length - 1);
+                int value = UnityEngine.Random.Range(0, cards.Length - 1);
                 while (cards[value].SpriteID != -1)
                     value = (value + 1) % cards.Length;
 
@@ -300,4 +307,106 @@ public class GameManager : MonoBehaviour
 
         }
     }
+    private string saveFileName = "memory_game_save.json"; // Save file name
+
+    // Save game data to a JSON file
+    public bool SaveGame()
+    {
+        try
+        {
+            SaveData saveData = new SaveData(gameSize, cardSelected, spriteSelected, cardLeft, match, turn, time, cards);
+            // ... Convert saveData object to JSON string ...
+            string jsonData = JsonUtility.ToJson(saveData);
+            File.WriteAllText(Application.persistentDataPath + "/" + saveFileName, jsonData);
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Save failed: " + e.Message);
+            return false;
+        }
+    }
+
+    // Load game data from a JSON file
+    public bool LoadGame()
+    {
+        try
+        {
+            string jsonData = File.ReadAllText(Application.persistentDataPath + "/" + saveFileName);
+            SaveData saveData = JsonUtility.FromJson<SaveData>(jsonData);
+            gameSize = saveData.gameSize;
+            cardSelected = saveData.cardSelected;
+            spriteSelected = saveData.spriteSelected;
+            cardLeft = saveData.cardLeft;
+            match = saveData.match;
+            turn = saveData.turn;
+            time = saveData.time;
+            // ... (Load card states from saveData.cardStates) ...
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.Log("Load failed: " + e.Message);
+            return false;
+        }
+    }
+    // Load card states from the save data
+    private void LoadCardStates(List<CardState> cardStates)
+    {
+        if (cardStates == null || cardStates.Count != cards.Length)
+        {
+            Debug.LogError("Invalid card state data");
+            return;
+        }
+        for (int i = 0; i < cards.Length; i++)
+        {
+            cards[i].flipped = cardStates[i].flipped;
+            cards[i].SpriteID = cardStates[i].spriteID; // Set the sprite ID for each card based on save data
+        }
+    }
 }
+
+// Class to store save data
+public class SaveData
+{
+    public int gameSize;
+    public int cardSelected;
+    public int spriteSelected;
+    public int cardLeft;
+    public int match;
+    public int turn;
+    public float time;
+
+    // Add a new field to store card states
+    public List<CardState> cardStates;
+
+    public SaveData(int gameSize, int cardSelected, int spriteSelected, int cardLeft, int match, int turn, float time, Card[] cards)
+    {
+        this.gameSize = gameSize;
+        this.cardSelected = cardSelected;
+        this.spriteSelected = spriteSelected;
+        this.cardLeft = cardLeft;
+        this.match = match;
+        this.turn = turn;
+        this.time = time;
+        cardStates = new List<CardState>();
+        foreach (Card card in cards)
+        {
+            cardStates.Add(new CardState(card.flipped, card.SpriteID));
+        }
+    }
+}
+
+// Class to store the state of a single card for saving
+public class CardState
+{
+    public bool flipped;
+    public int spriteID;
+
+    public CardState(bool flipped, int spriteID)
+    {
+        this.flipped = flipped;
+        this.spriteID = spriteID;
+    }
+}
+
