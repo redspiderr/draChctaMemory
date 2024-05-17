@@ -84,7 +84,8 @@ public class GameManager : MonoBehaviour
         // allocate sprite to card
         SpriteCardAllocation();
         StartCoroutine(HideFace());
-        match = turn = time = 0;
+        time = 0;
+        match = turn = 0;
          
     }
 
@@ -93,7 +94,7 @@ public class GameManager : MonoBehaviour
         // if game is odd, we should have 1 card less
         int isOdd = gameSize % 2 ;
 
-        cards = new _Card[gameSize * gameSize - isOdd];
+        cards = new Card[gameSize * gameSize - isOdd];
         // remove all gameobject from parent
         foreach (Transform child in cardList.transform)
         {
@@ -136,7 +137,7 @@ public class GameManager : MonoBehaviour
                     c.transform.parent = cardList.transform;
 
                     int index = i * gameSize + j;
-                    cards[index] = c.GetComponent<_Card>();
+                    cards[index] = c.GetComponent<Card>();
                     cards[index].ID = index;
                     // modify its size
                     c.transform.localScale = new Vector3(scale, scale);
