@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,25 +26,27 @@ public class GameManager : MonoBehaviour
 
     //we place card on this panel
     [SerializeField]
-    private GameObject panel;
+    private GameObject gamePanel;
     [SerializeField]
     private GameObject info;
+    [SerializeField]
+    private GameObject menuPanel;
     // for preloading
     [SerializeField]
     private Card spritePreload;
     // other UI
     [SerializeField]
-    private Text sizeLabel;
+    private TextMeshProUGUI sizeLabel;
     [SerializeField]
     private Slider sizeSlider;
     [SerializeField]
-    private Text timeLabel;
+    private TextMeshProUGUI timeLabel;
     private float time;
     [SerializeField]
-    private Text turnLabel;
+    private TextMeshProUGUI turnLabel;
     private int turn;
     [SerializeField]
-    private Text matchLabel;
+    private TextMeshProUGUI matchLabel;
     private int match;
 
     private int spriteSelected;
@@ -58,7 +61,10 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         gameStart = false;
-        panel.SetActive(false);
+        gamePanel.SetActive(false);
+        menuPanel.SetActive(true);
+        info.SetActive(false);
+
     }
     // Purpose is to allow preloading of panel, so that it does not lag when it loads
     // Call this in the start method to preload all sprites at start of the script
@@ -74,7 +80,8 @@ public class GameManager : MonoBehaviour
         if (gameStart) return; // return if game already running
         gameStart = true;
         // toggle UI
-        panel.SetActive(true);
+        gamePanel.SetActive(true);
+        menuPanel.SetActive(false);
         info.SetActive(false);
         // set cards, size, position
         SetGamePanel();
@@ -101,7 +108,7 @@ public class GameManager : MonoBehaviour
             GameObject.Destroy(child.gameObject);
         }
         // calculate position between each card & start position of each card based on the Panel
-        RectTransform panelsize = panel.transform.GetComponent(typeof(RectTransform)) as RectTransform;
+        RectTransform panelsize = gamePanel.transform.GetComponent(typeof(RectTransform)) as RectTransform;
         float row_size = panelsize.sizeDelta.x;
         float col_size = panelsize.sizeDelta.y;
         float scale = 1.0f/gameSize;
@@ -245,6 +252,7 @@ public class GameManager : MonoBehaviour
                 cards[cardId].Inactive();
                 cardLeft -= 2;
                 match++;
+                matchLabel.text = match.ToString();
                 CheckGameWin();
             }
             else
@@ -254,6 +262,7 @@ public class GameManager : MonoBehaviour
                 cards[cardId].Flip();
             }
             turn++;
+            turnLabel.text = turn.ToString();
             cardSelected = spriteSelected = -1;
         }
     }
@@ -263,6 +272,7 @@ public class GameManager : MonoBehaviour
         // win game
         if (cardLeft == 0)
         {
+            info.SetActive(true);
             EndGame();
             AudioPlayer.Instance.PlayAudio(1);
         }
@@ -271,7 +281,8 @@ public class GameManager : MonoBehaviour
     private void EndGame()
     {
         gameStart = false;
-        panel.SetActive(false);
+        gamePanel.SetActive(false);
+        menuPanel.SetActive(true);
     }
     public void GiveUp()
     {
@@ -285,7 +296,8 @@ public class GameManager : MonoBehaviour
     private void Update(){
         if (gameStart) {
             time += Time.deltaTime;
-            timeLabel.text = "Time: " + time + "s";
+            timeLabel.text = (int)time + "s";
+
         }
     }
 }
